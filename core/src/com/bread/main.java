@@ -19,6 +19,8 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Array;
 
+import java.util.concurrent.TimeUnit;
+
 public class main implements ApplicationListener {
     public PerspectiveCamera cam;
     public CameraInputController camController;
@@ -45,6 +47,9 @@ public class main implements ApplicationListener {
         Gdx.input.setInputProcessor(camController);
 
         loading = true;
+
+
+
     }
 
     private void doneLoading() {
@@ -54,21 +59,30 @@ public class main implements ApplicationListener {
                 new Material(ColorAttribute.createDiffuse(Color.CYAN)),
                 Usage.Position | Usage.Normal);
 
-        for (float x = -5f; x <= 5f; x += 2f) {
-            for (float z = -5f; z <= 5f; z += 2f) {
-                ModelInstance worldInstance = new ModelInstance(box);
-                worldInstance.transform.setToTranslation(x, 0, z);
-                instances.add(worldInstance);
-                System.out.println("x: "+ x +"| z: " + z);
+        try {
+            for (float x = -5f; x <= 5f; x += 2f) {
+                for (float z = -5f; z <= 5f; z += 2f) {
+                    ModelInstance worldInstance = new ModelInstance(box);
+                    worldInstance.transform.setToTranslation(x, 0, z);
+                    instances.add(worldInstance);
+                    System.out.println("x: "+ x +"| z: " + z);
+                }
             }
+            Thread.sleep(100);
         }
+        catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+
         loading = false;
     }
 
     @Override
     public void render () {
+
         if (loading = true) {
             doneLoading();
+            loading = false;
         }
         camController.update();
 
