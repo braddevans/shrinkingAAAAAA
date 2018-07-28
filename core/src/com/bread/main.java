@@ -20,75 +20,81 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Array;
 
 public class main implements ApplicationListener {
-	public Environment environment;
-	public PerspectiveCamera cam;
-	public CameraInputController camController;
-	public ModelBatch modelBatch;
-	public Model model;
-	private Array<ModelInstance> instances = new Array<ModelInstance>();
-	public ModelInstance instance;
+    public PerspectiveCamera cam;
+    public CameraInputController camController;
+    public ModelBatch modelBatch;
+    public Array<ModelInstance> instances = new Array<ModelInstance>();
+    public Environment environment;
+    public boolean loading;
 
-	@Override
-	public void create() {
-		environment = new Environment();
-		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
-		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
-		
-		modelBatch = new ModelBatch();
-		
-		cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(10f, 10f, 10f);
-		cam.lookAt(0,0,0);
-		cam.near = 1f;
-		cam.far = 300f;
-		cam.update();
+    @Override
+    public void create () {
+        modelBatch = new ModelBatch();
+        environment = new Environment();
+        environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
+        environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-        ModelBuilder modelBuilder = new ModelBuilder();
-        model = modelBuilder.createBox(2f, 2f, 2f,
-                new Material(),
-                VertexAttributes.Usage.Position |
-                        VertexAttributes.Usage.Normal |
-                        VertexAttributes.Usage.TextureCoordinates);
+        cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        cam.position.set(7f, 7f, 7f);
+        cam.lookAt(0,0,0);
+        cam.near = 1f;
+        cam.far = 300f;
+        cam.update();
 
-        instances = new ModelInstance(model);
-
-		for (int x = -5; x <= 5; x+=2) {
-			for (int z = -5; z <= 5; z+=2) {
-				instances.add(new ModelInstance(model, x, 10f, z));
-			}
-		}
-        
         camController = new CameraInputController(cam);
         Gdx.input.setInputProcessor(camController);
-	}
 
-	@Override
-	public void render() {
-		camController.update();
-		
+        loading = true;
+    }
+
+    private void doneLoading() {
+        ModelBuilder modelBuilder = new ModelBuilder();
+
+        Model box = modelBuilder.createBox(3f,3f,3f,
+                new Material(ColorAttribute.createDiffuse(Color.CYAN)),
+                Usage.Position | Usage.Normal);
+
+        for (float x = -5f; x <= 5f; x += 2f) {
+            for (float z = -5f; z <= 5f; z += 2f) {
+                ModelInstance worldInstance = new ModelInstance(box);
+                worldInstance.transform.setToTranslation(x, 0, z);
+                instances.add(worldInstance);
+                System.out.println("x: "+ x +"| z: " + z);
+            }
+        }
+        loading = false;
+    }
+
+    @Override
+    public void render () {
+        if (loading = true) {
+            doneLoading();
+        }
+        camController.update();
+
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
- 
+
         modelBatch.begin(cam);
-        modelBatch.render(instance, environment);
+        modelBatch.render(instances, environment);
         modelBatch.end();
-	}
-	
-	@Override
-	public void dispose() {
-		modelBatch.dispose();
-		model.dispose();
-	}
+    }
 
-	@Override
-	public void resize(int width, int height) {
-	}
+    @Override
+    public void dispose () {
+        modelBatch.dispose();
+        instances.clear();
+    }
 
-	@Override
-	public void pause() {
-	}
+    @Override
+    public void resize(int width, int height) {
+    }
 
-	@Override
-	public void resume() {
-	}
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
 }
